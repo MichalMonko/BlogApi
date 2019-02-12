@@ -41,6 +41,6 @@ class Article(models.Model):
 
 class Comment(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
-    content = models.TextField()
+    content = models.TextField(blank=True)
     publication_date = models.DateTimeField()
     article = models.ForeignKey(Article, on_delete=models.CASCADE)

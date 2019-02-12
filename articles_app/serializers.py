@@ -14,12 +14,18 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ['name']
 
 
-class CommentSerializer(serializers.ModelSerializer):
+class CommentGetSerializer(serializers.ModelSerializer):
     author = AuthorSerializer()
 
     class Meta:
         model = Comment
         fields = ['author', 'content', 'publication_date']
+
+
+class CommentPostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ['content']
 
 
 class ArticlesPostSerializer(serializers.ModelSerializer):
@@ -33,7 +39,7 @@ class ArticlesPostSerializer(serializers.ModelSerializer):
 class ArticlesGetSerializer(serializers.ModelSerializer):
     author = AuthorSerializer()
     tags = TagSerializer(many=True)
-    comments = CommentSerializer(source='comment_set', many=True)
+    comments = CommentGetSerializer(source='comment_set', many=True)
 
     class Meta:
         model = Article
