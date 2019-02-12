@@ -3,7 +3,6 @@ from articles_app.models import Article, Author, Tag, Comment
 
 
 class AuthorSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Author
         fields = ['first_name', 'last_name', 'nickname']
@@ -23,15 +22,18 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ['author', 'content', 'publication_date']
 
 
-class ArticlesSerializer(serializers.ModelSerializer):
-    author = AuthorSerializer()
-    tags = TagSerializer(many=True, read_only=True)
-    comments = CommentSerializer(source='comment_set', many=True)
+class ArticlesPostSerializer(serializers.ModelSerializer):
+    tags = TagSerializer(many=True, required=False)
 
-    def validate_rating(self, value):
-        if 0 <= value <= 5:
-            return value
-        raise serializers.ValidationError("Rating must be in range 0 to 5")
+    class Meta:
+        model = Article
+        fields = ['title', 'tags', 'content']
+
+
+class ArticlesGetSerializer(serializers.ModelSerializer):
+    author = AuthorSerializer()
+    tags = TagSerializer(many=True)
+    comments = CommentSerializer(source='comment_set', many=True)
 
     class Meta:
         model = Article

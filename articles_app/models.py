@@ -22,15 +22,19 @@ class Author(models.Model):
         return "{} '{}' {}".format(self.first_name, self.nickname, self.last_name)
 
 
+def get_author_data_related_to_user(user: CustomUser):
+    return Author.objects.get(user_id=user.id)
+
+
 class Tag(models.Model):
-    name = models.CharField(max_length=32)
+    name = models.CharField(max_length=32, unique=True)
 
 
 class Article(models.Model):
     title = models.CharField(max_length=255)
     content = models.TextField()
     author = models.ForeignKey(Author, on_delete=models.DO_NOTHING)
-    tags = models.ManyToManyField(Tag)
+    tags = models.ManyToManyField(Tag, blank=True, default='')
     publication_date = models.DateField()
     rating = models.IntegerField(default=0)
 
