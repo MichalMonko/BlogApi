@@ -9,6 +9,19 @@ class AuthorSerializer(serializers.ModelSerializer):
 
 
 class TagSerializer(serializers.ModelSerializer):
+    name = serializers.CharField()
+
+    class Meta:
+        model = Tag
+        fields = ['name']
+
+
+class StringToTagSerializer(serializers.ModelSerializer):
+    name = serializers.CharField()
+
+    def to_internal_value(self, data):
+        return {'name': data}
+
     class Meta:
         model = Tag
         fields = ['name']
@@ -23,17 +36,48 @@ class CommentGetSerializer(serializers.ModelSerializer):
 
 
 class CommentPostSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(required=False)
+
     class Meta:
         model = Comment
-        fields = ['content']
+        fields = ['id', 'content']
 
 
 class ArticlesPostSerializer(serializers.ModelSerializer):
-    tags = TagSerializer(many=True, required=False)
+    tags = StringToTagSerializer(many=True, required=False)
+    id = serializers.ReadOnlyField(required=False)
+
+    def create(self, validated_data):
+        tags_list = list()
+        try:
+            tags_list = validated_data.pop('tags')
+        except Tag.DoesNotExist:
+            pass
+
+        article = Article.objects.create(**validated_data)
+        for tag in tags_list:
+            article.tags.create(**tag)
+
+        return article
+
+    def update(self, instance, validated_data):
+        tags_list = list()
+        try:
+            tags_list = validated_data.pop('tags')
+        except KeyError:
+            pass
+
+        for tag in tags_list:
+            instance.tags.create(**tag)
+
+        instance.title = validated_data.pop('title')
+        instance.content = validated_data.pop('content')
+        instance.save()
+        return instance
 
     class Meta:
         model = Article
-        fields = ['title', 'tags', 'content']
+        fields = ['id', 'title', 'tags', 'content']
 
 
 class ArticlesGetSerializer(serializers.ModelSerializer):
@@ -43,4 +87,4 @@ class ArticlesGetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Article
-        fields = ['title', 'author', 'tags', 'content', 'comments', 'publication_date', 'rating']
+        fields = ['id', 'title', 'author', 'tags', 'content', 'comments', 'publication_date', 'rating']

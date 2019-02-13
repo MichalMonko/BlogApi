@@ -7,6 +7,7 @@ from articles import settings
 
 
 class CustomUser(AbstractUser):
+    is_redaction = models.BooleanField(default=False)
 
     def __str__(self):
         return self.username
@@ -14,7 +15,7 @@ class CustomUser(AbstractUser):
 
 class Author(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    first_name = models.CharField(max_length=64, blank=True, default='')
+    first_name = models.CharField(max_length=64, blank=True, default='Anonymous')
     last_name = models.CharField(max_length=64, blank=True, default='')
     nickname = models.CharField(max_length=64, blank=True, default='')
 
@@ -26,8 +27,15 @@ def get_author_data_related_to_user(user: CustomUser):
     return Author.objects.get(user_id=user.id)
 
 
+class TagManager(models.Manager):
+    def create_tag(self, name):
+        tag = self.get_or_create(name=name)
+        return tag
+
+
 class Tag(models.Model):
-    name = models.CharField(max_length=32, unique=True)
+    name = models.CharField(max_length=32)
+    objects = TagManager()
 
 
 class Article(models.Model):
